@@ -1,7 +1,9 @@
 Analysis of Twitter Data
 ================
-Danilo Scorzoni Re
-6/27/2020
+June 27th, 2020
+
+> In this analysis I present recommendations about posting frequency on
+> Twitter by a Brazilian publisher account (@uolnoticias).
 
 ## Twitter Data in R
 
@@ -30,24 +32,24 @@ twitter_token <- create_token(
 
 ### Extracting data from Twitter
 
-This exercise will be to extract the last 1000 tweets from a media
+This exercise will be to extract the last 3000 tweets from a media
 outlet from Brazil (@uolnoticias) and provide a ground report around
 some stats.
 
 ``` r
-uol <- get_timeline("uolnoticias", n = 1000)
+uol <- get_timeline("uolnoticias", n = 3000)
 head(uol)
 ```
 
     ## # A tibble: 6 x 90
     ##   user_id status_id created_at          screen_name text  source
     ##   <chr>   <chr>     <dttm>              <chr>       <chr> <chr> 
-    ## 1 145946… 12769518… 2020-06-27 18:53:32 UOLNoticias "Ele… Twitt…
-    ## 2 145946… 12769518… 2020-06-27 18:53:32 UOLNoticias "Pio… Twitt…
-    ## 3 145946… 12769518… 2020-06-27 18:53:31 UOLNoticias "Sue… Twitt…
-    ## 4 145946… 12769518… 2020-06-27 18:53:31 UOLNoticias "Fra… Twitt…
-    ## 5 145946… 12769518… 2020-06-27 18:53:31 UOLNoticias "O e… Twitt…
-    ## 6 145946… 12769518… 2020-06-27 18:53:30 UOLNoticias "Jul… Twitt…
+    ## 1 145946… 12769592… 2020-06-27 19:23:15 UOLNoticias "Sar… Zapie…
+    ## 2 145946… 12769580… 2020-06-27 19:18:10 UOLNoticias "Dep… Twitt…
+    ## 3 145946… 12769518… 2020-06-27 18:53:32 UOLNoticias "Ele… Twitt…
+    ## 4 145946… 12769518… 2020-06-27 18:53:32 UOLNoticias "Pio… Twitt…
+    ## 5 145946… 12769518… 2020-06-27 18:53:31 UOLNoticias "Sue… Twitt…
+    ## 6 145946… 12769518… 2020-06-27 18:53:31 UOLNoticias "Fra… Twitt…
     ## # … with 84 more variables: display_text_width <dbl>, reply_to_status_id <chr>,
     ## #   reply_to_user_id <chr>, reply_to_screen_name <chr>, is_quote <lgl>,
     ## #   is_retweet <lgl>, favorite_count <int>, retweet_count <int>,
@@ -130,31 +132,40 @@ names(uol)
     ## [87] "account_lang"            "profile_banner_url"     
     ## [89] "profile_background_url"  "profile_image_url"
 
+### Frequency of Tweets per Hour
+
 As you can see in the list of columns, there is a TON OF DATA coming
 from it. Let’s start with a simple tweets counts per hour, of the last
 1000 tweets.
 
 ``` r
+# Loading Libraries
 library(ggplot2) # Charts
 library(dplyr) # Data Processing
 library(tidyr) # Data Processing
 library(lubridate) # Date functions
 
+# Tweets per Hour
 uol %>%
-  mutate(created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
-         day_hour = make_datetime(
-           year = year(created_at),
-           month = month(created_at),
-           day = day(created_at),
-           hour = hour(created_at))) %>%
+  filter(is_retweet == F) %>%
+  mutate(
+    created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
+    day_hour = make_datetime(
+      year = year(created_at),
+      month = month(created_at),
+      day = day(created_at),
+      hour = hour(created_at)
+    )
+  ) %>%
   group_by(day_hour) %>%
   summarise(n = length(day_hour)) %>%
-  ggplot(aes(y = n, x = day_hour)) +
+  ggplot(aes(y = n, x = day_hour, col = 1, fill = 1)) +
   geom_bar(stat = "identity", alpha = 0.5) +
   theme_light() +
   xlab("Date/Time of the Day") +
   ylab("Tweets/Hour") +
-  ggtitle("Tweets per hour by @uolnoticias account")
+  ggtitle("Tweets per hour by @uolnoticias account") +
+  theme(legend.position = "none")
 ```
 
 ![](01_twitter_data_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
@@ -168,7 +179,9 @@ There are some interesting insights here:
 Let’s take a look at some summary stats:
 
 ``` r
+# Summary of Tweets per Hour
 uol %>%
+  filter(is_retweet == F) %>%
   mutate(created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
          day_hour = make_datetime(
            year = year(created_at),
@@ -180,16 +193,18 @@ uol %>%
   summary()
 ```
 
-    ##     day_hour                         n         
-    ##  Min.   :2020-06-20 18:00:00   Min.   : 1.000  
-    ##  1st Qu.:2020-06-22 16:30:00   1st Qu.: 5.000  
-    ##  Median :2020-06-24 12:00:00   Median : 8.000  
-    ##  Mean   :2020-06-24 07:56:28   Mean   : 8.403  
-    ##  3rd Qu.:2020-06-25 23:30:00   3rd Qu.:11.000  
-    ##  Max.   :2020-06-27 18:00:00   Max.   :24.000
+    ##     day_hour                         n        
+    ##  Min.   :2020-06-07 11:00:00   Min.   : 1.00  
+    ##  1st Qu.:2020-06-12 03:00:00   1st Qu.: 5.00  
+    ##  Median :2020-06-17 13:00:00   Median : 8.00  
+    ##  Mean   :2020-06-17 11:55:21   Mean   : 8.57  
+    ##  3rd Qu.:2020-06-22 19:00:00   3rd Qu.:12.00  
+    ##  Max.   :2020-06-27 19:00:00   Max.   :32.00
 
 ``` r
+# Boxplot of Tweets per Hour
 uol %>%
+  filter(is_retweet == F) %>%
   mutate(created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
          day_hour = make_datetime(
            year = year(created_at),
@@ -198,22 +213,195 @@ uol %>%
            hour = hour(created_at))) %>%
   group_by(day_hour) %>%
   summarise(n = length(day_hour)) %>%
-  ggplot(aes(x = factor(hour(day_hour)), y = n)) +
-  geom_boxplot() +
+  ggplot(aes(x = factor(hour(day_hour)), y = n, fill = 1, col = 2)) +
+  geom_boxplot(alpha = 0.5) +
   theme_light() +
   xlab("Hour of the Day") +
   ylab("Tweets/Hour") +
-  ggtitle("Boxplot of tweets per hour across different days by @uolnoticias account")
+  ggtitle("Boxplot of tweets per hour across different days by @uolnoticias account") +
+  theme(legend.position = "none")
 ```
 
 ![](01_twitter_data_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-If this summary and boxplot chart, we can learn that:
+With this summary and boxplot chart, we can learn that:
 
   - @uolnoticias is posting around 8 tweets/hour.
   - They stop posting at 3AM and start again at 10AM, as people get more
     active and get back to consume their tweets on Tweeter.
   - At 10AM, they have a big number of tweets published. It looks like
     they are all blocked during the night to be posted at 10AM.
-  - The number of tweets per hour tend to increase around 18PM and tend
-    to decrease at 22PM.
+  - The number of tweets per hour tend to increase, with peak at 5PM and
+    tend to decrease at 8PM.
+
+### Engagement and Posting Frequency
+
+Does engagement data drive the posting frequency throughout the day?
+Let’s take a look at number of favorites/likes on tweets and how this
+changes throughout the day.
+
+``` r
+uol %>%
+  filter(is_retweet == F) %>%
+  mutate(created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
+         hour = hour(created_at),
+         day_hour = make_datetime(
+           year = year(created_at),
+           month = month(created_at),
+           day = day(created_at),
+           hour = hour(created_at))) %>%
+  group_by(day_hour) %>%
+  summarise(
+    tweets_per_hour = length(hour),
+    favorite_per_tweet = mean(favorite_count)
+  ) %>%
+  mutate(hour = hour(day_hour)) %>%
+  group_by(hour) %>%
+  summarise(
+    median_tweets_per_hour = quantile(tweets_per_hour, 0.5),
+    median_favorite_per_tweet = quantile(favorite_per_tweet, 0.5)
+  ) %>%
+  gather(key = "key", value = "value", -hour) %>%
+  ggplot(aes(x = hour, y = value, col = key, fill = key)) +
+  geom_bar(stat = "identity", alpha = 0.5) +
+  facet_wrap(~ key, nrow = 2, scales = "free") +
+  theme_light() +
+  xlab("Hour of the Day") +
+  ylab("") +
+  ggtitle("Tweets per hour and median favorites/tweet throughout the day. ") +
+  theme(legend.position="none")
+```
+
+![](01_twitter_data_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+Insights from the chart above:
+
+  - We see that the engagement (favorites) is stronger during the night
+    (8PM-3AM) then during the daytime or early evening.
+  - Posting activity works in the opposite way, with less tweets/hour in
+    the late night, with increasing activity throughout the day until
+    8PM.
+
+Question to be investigated:
+
+> With flat engagement while we see an increasing number of tweets, is
+> this happening because the higher volume of tweets can be competing
+> with each other?
+
+``` r
+uol %>%
+  filter(is_retweet == F) %>%
+  mutate(
+    created_at = as.POSIXct(created_at, format="%d-%H:00", tz = -3),
+    day_hour = make_datetime(
+      year = year(created_at),
+      month = month(created_at),
+      day = day(created_at),
+      hour = hour(created_at)
+    )
+  ) %>%
+  group_by(day_hour) %>%
+  summarise(
+    tweets_per_hour = length(day_hour),
+    favorite_per_tweet = quantile(favorite_count, 0.5)
+  ) %>%
+  ggplot(aes(y = favorite_per_tweet, x = tweets_per_hour)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth() +
+  theme_light() +
+  xlab("Tweets per Hour") +
+  ylab("Favorites/Likes per Tweet") +
+  ggtitle("The diminishing returns of posting too frequently.") +
+  theme(legend.position="none")
+```
+
+![](01_twitter_data_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+Data shows that:
+
+  - As you increase frequency of tweets, the less engagement you get per
+    tweet.
+  - For optimization, posting at max 6 tweets/hour is good enough to
+    extract the higher benefit/tweet.
+  - Posting more do contribute with more overall engagement, but the
+    return are limited.
+
+### Interval between tweets
+
+Let’s suppose that posting 6 times/hour would give you one tweet at
+every 10 minutes. However, we need some evidence to understand if
+posting at fixed time intervals are better than posting as the news
+happens (no pre-defined schedule).
+
+``` r
+uol %>%
+  filter(is_retweet == F) %>% # Removing retweets because they don't accrue favorites.
+  select(favorite_count, created_at) %>%
+  mutate(previous_at = lead(x = created_at, n = 1, order_by = created_at),
+         lag_min = as.numeric(previous_at - created_at)/60,
+         lag_interval = cut(lag_min, c(0,0.5,1,3,5,10,15,30,60,9999999))) %>%
+  filter(!is.na(lag_interval)) %>%
+  count(lag_interval) %>%
+  ggplot(aes(x = lag_interval, y = n/sum(n)*100, fill = 1, col = 1, 
+             label = paste0(round(n/sum(n)*100),"%"))) +
+  geom_bar(stat = "identity", alpha = 0.5) +
+  geom_label(alpha = 0.7, col = "white", size = 3.5) +
+  theme_light() +
+  xlab("Interval between tweets posted (in minutes)") +
+  ylab("Frequency of Tweets") +
+  ggtitle("UOLNoticias is posting more tweets in short intervals") +
+  theme(legend.position="none")
+```
+
+![](01_twitter_data_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+As you can see in the chart above, UOLNoticias has a lot of tweets (22%)
+being posted in less than 30 seconds. Let’s see how this can impact
+engagement:
+
+``` r
+uol %>%
+  filter(is_retweet == F) %>% # Removing retweets because they don't accrue favorites.
+  select(favorite_count, created_at) %>%
+  mutate(previous_at = lead(x = created_at, n = 1, order_by = created_at),
+         lag_min = as.numeric(previous_at - created_at)/60,
+         lag_interval = cut(lag_min, c(0,0.5,1,3,5,10,15,30,60,9999999))) %>%
+  filter(!is.na(lag_interval) &
+           favorite_count < quantile(favorite_count, 0.95)) %>%
+  filter(lag_min < quantile(lag_min, 0.95)) %>%
+  ggplot(aes(x = round(lag_min), y = favorite_count)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth() +
+  theme_light() +
+  xlab("Lag between tweets (minutes)") +
+  ylab("Favorites/Likes per Tweet") +
+  ggtitle("Weak positive correlation (r = 0.13) between favorites/likes and \n interval between tweets") +
+  theme(legend.position="none")
+```
+
+![](01_twitter_data_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+The data doesn’t support a strong effect of interval between tweets.
+Further investigation would be necessary through a causal analysis or
+A/B tests.
+
+### Summary and Recommendations
+
+1.  This account is not posting with high frequency during night and
+    data shows that this is the time of the day where tweets gets more
+    engagement. Although this is a correlation, the editorial team have
+    some opportunities to try optimization os posting in this moment.
+    This is specially true for the tweets that are blocked to be posted
+    until 10AM in the following day.
+
+2.  The number of tweets/hour showed some interesting correlation, with
+    an optimal value as 6 tweets/hour. After this frequency, you have
+    diminishing returns. Currently, the account is posting on average 8
+    tweets/hour. It’s interesting to assess business reasons for posting
+    more than 6 tweets/hour and experiment with less tweets per hour.
+
+3.  It’s not possible to be affirmative about the interval between
+    tweets, so it’s recommended to experiment with A/B tests or causal
+    analysis (using regression analysis on all possible controlled
+    effects) to better understand if there is a real effect on
+    engagement.
