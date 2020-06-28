@@ -1,5 +1,6 @@
 README.html
+.Rhistory
 01_twitter_data.Rmd
 01_twitter_data_cache
-02_twitter_account_investigation_cache
 02_twitter_account_investigation.Rmd
+02_twitter_account_investigation_cache
