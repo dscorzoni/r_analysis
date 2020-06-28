@@ -12,7 +12,7 @@ automated using many different softwares. Some of them are very popular
 and widely used by Social Media teams, but at the same time, someone can
 create a new programming to automate specific tasks. Many political
 actors have been using this kind of automation to spread content and
-inflate reach of hashtags, for example, artifically.
+inflate reach of hashtags, for example, artificially.
 
 In this analysis we’re going to use Twitter API data for a specific
 account to see signals of automation.
