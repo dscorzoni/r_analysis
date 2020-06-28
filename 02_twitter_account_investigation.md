@@ -174,7 +174,7 @@ acc %>%
   theme_light() +
   xlab("Date/Time of the Day") +
   ylab("Tweets/Hour") +
-  ggtitle("Tweets per hour by @psmtavares account") +
+  ggtitle("Tweets per hour by @lysbella account") +
   theme(legend.position = "none")
 ```
 
@@ -288,6 +288,7 @@ accounts mentioned:
 
 ``` r
 acc %>%
+  filter(is_retweet == F) %>%
   select(status_id, source, mentions_screen_name) %>%
   unnest(mentions_screen_name) %>%
   filter(!is.na(mentions_screen_name)) %>%
@@ -304,7 +305,7 @@ acc %>%
   theme_light() +
   xlab("Accounts Mentioned") +
   ylab("Number of mentions") +
-  ggtitle("Top 10 accounts mentioned by source") +
+  ggtitle("Top 10 accounts organically mentioned by source") +
   theme(legend.position="none")
 ```
 
@@ -316,3 +317,40 @@ support him and news websites used by them. One case here we have
 @jornaldacidadeo, an account being flagged multiple times about fake
 news/hate speech and being targeted by [Sleeping
 Giants](https://twitter.com/slpng_giants_pt) movement.
+
+## Repetitive Content
+
+Finally, let’s make a quick check on organic content being posted to see
+if there are repetitive content on it.
+
+``` r
+acc %>%
+  filter(is_retweet == F) %>%
+  group_by(user_id) %>%
+  summarise(
+    n = length(text),
+    distinct = n_distinct(text),
+    distinct_pct = distinct/n
+  )
+```
+
+    ## # A tibble: 1 x 4
+    ##   user_id      n distinct distinct_pct
+    ##   <chr>    <int>    <int>        <dbl>
+    ## 1 33576610  1613     1612        0.999
+
+> 99.9% of tweets from this account are distinct, which means that this
+> account isn’t posting repetitive content.
+
+## Summary
+
+  - This account presents a posting pattern that is not typical, due to
+    constant posting (including late night hours) and the breakdown
+    between iPhone and Web sources.
+  - Although we couldn’t find signals of hashtag boosting, this account
+    is mentioning other accounts in almost all tweets. This is a
+    strategy for boost growth of accounts and might being be used for
+    this purpose.
+  - Accounts with more mentions are all related to the politician that
+    we used first to select this account, being used as a echo chamber
+    for this discourse.
