@@ -403,17 +403,17 @@ print(matchedtab1, smd = T)
     ##                      Stratified by treatment
     ##                       0             1             SMD   
     ##   n                    2184          2184               
-    ##   ARF (mean (SD))      0.50 (0.50)   0.42 (0.49)   0.175
-    ##   CHF (mean (SD))      0.09 (0.29)   0.10 (0.29)   0.021
-    ##   Cirr (mean (SD))     0.02 (0.14)   0.02 (0.15)   0.016
+    ##   ARF (mean (SD))      0.50 (0.50)   0.42 (0.49)   0.167
+    ##   CHF (mean (SD))      0.09 (0.28)   0.10 (0.29)   0.030
+    ##   Cirr (mean (SD))     0.02 (0.15)   0.02 (0.15)   0.009
     ##   colcan (mean (SD))   0.00 (0.03)   0.00 (0.02)   0.017
     ##   Coma (mean (SD))     0.04 (0.20)   0.04 (0.20)   0.009
-    ##   lungcan (mean (SD))  0.00 (0.05)   0.00 (0.05)  <0.001
-    ##   MOSF (mean (SD))     0.08 (0.28)   0.07 (0.26)   0.043
-    ##   sepsis (mean (SD))   0.23 (0.42)   0.32 (0.47)   0.196
-    ##   age (mean (SD))     60.90 (17.89) 60.75 (15.63)  0.009
-    ##   female (mean (SD))   0.44 (0.50)   0.41 (0.49)   0.052
-    ##   meanbp1 (mean (SD)) 70.80 (33.01) 68.20 (34.24)  0.077
+    ##   lungcan (mean (SD))  0.00 (0.04)   0.00 (0.05)   0.010
+    ##   MOSF (mean (SD))     0.09 (0.28)   0.07 (0.26)   0.049
+    ##   sepsis (mean (SD))   0.23 (0.42)   0.32 (0.47)   0.195
+    ##   age (mean (SD))     61.19 (17.77) 60.75 (15.63)  0.026
+    ##   female (mean (SD))   0.43 (0.50)   0.41 (0.49)   0.030
+    ##   meanbp1 (mean (SD)) 70.46 (32.60) 68.20 (34.24)  0.068
 
 As you can see, there are some covariates that are hitting the threshold
 for SMD \> 0.1. In this case, let’s re-do the analysis setting a
@@ -434,17 +434,17 @@ print(matchedtab1, smd = T)
     ##                      Stratified by treatment
     ##                       0             1             SMD   
     ##   n                    1932          1932               
-    ##   ARF (mean (SD))      0.47 (0.50)   0.47 (0.50)   0.005
-    ##   CHF (mean (SD))      0.09 (0.29)   0.09 (0.29)   0.011
-    ##   Cirr (mean (SD))     0.03 (0.16)   0.03 (0.16)   0.016
-    ##   colcan (mean (SD))   0.00 (0.03)   0.00 (0.02)   0.019
-    ##   Coma (mean (SD))     0.05 (0.21)   0.05 (0.22)   0.015
-    ##   lungcan (mean (SD))  0.00 (0.06)   0.00 (0.05)   0.019
-    ##   MOSF (mean (SD))     0.08 (0.28)   0.08 (0.27)   0.008
-    ##   sepsis (mean (SD))   0.25 (0.43)   0.25 (0.43)  <0.001
-    ##   age (mean (SD))     60.96 (17.79) 60.91 (15.52)  0.003
-    ##   female (mean (SD))   0.42 (0.49)   0.43 (0.49)   0.010
-    ##   meanbp1 (mean (SD)) 71.36 (33.30) 70.99 (35.02)  0.011
+    ##   ARF (mean (SD))      0.46 (0.50)   0.47 (0.50)   0.007
+    ##   CHF (mean (SD))      0.09 (0.29)   0.09 (0.29)   0.002
+    ##   Cirr (mean (SD))     0.03 (0.17)   0.03 (0.16)   0.025
+    ##   colcan (mean (SD))   0.00 (0.02)   0.00 (0.02)  <0.001
+    ##   Coma (mean (SD))     0.05 (0.21)   0.05 (0.22)   0.020
+    ##   lungcan (mean (SD))  0.00 (0.05)   0.00 (0.05)  <0.001
+    ##   MOSF (mean (SD))     0.08 (0.28)   0.08 (0.27)   0.011
+    ##   sepsis (mean (SD))   0.25 (0.43)   0.25 (0.43)   0.004
+    ##   age (mean (SD))     60.77 (17.71) 60.91 (15.52)  0.008
+    ##   female (mean (SD))   0.42 (0.49)   0.43 (0.49)   0.006
+    ##   meanbp1 (mean (SD)) 71.63 (34.05) 70.99 (35.02)  0.019
 
 Note that now some observations were dropped but SMD is much smaller. We
 might have more variance but smaller bias for this dataset now.
@@ -469,13 +469,253 @@ t.test(diffy)
     ##  One Sample t-test
     ## 
     ## data:  diffy
-    ## t = 2.8631, df = 1931, p-value = 0.004241
+    ## t = 2.6474, df = 1931, p-value = 0.008178
     ## alternative hypothesis: true mean is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.01369565 0.07326087
+    ##  0.01073272 0.07208302
     ## sample estimates:
     ##  mean of x 
-    ## 0.04347826
+    ## 0.04140787
 
 The result of very similar to previous method (0.045 x 0.043), so
 conclusions remain the same.
+
+## Marginal Structural Models using IPTW
+
+Using the same RHC dataset, let’s fit a marginal structural model using
+Inverse Probability of Treatment weighting.
+
+``` r
+# Propensity model score
+psmodel = glm(treatment ~ ARF + CHF + Cirr + colcan + Coma + lungcan +
+                MOSF + sepsis + age + female + meanbp1,
+              family = binomial(link = "logit"), data = mydata)
+
+# Value of propensity model for each subject
+ps = predict(psmodel, type = "response")
+
+# Creating weights
+weight = ifelse(mydata$treatment == 1, 1/ps, 1/(1-ps))
+
+# Applying weights to data
+library(survey)
+weighteddata = svydesign(ids = ~  1, data = mydata, weights = ~ weight)
+
+# Weighted Table One
+weightedtable = svyCreateTableOne(vars = xvars, strata = "treatment",
+                                  data = weighteddata, test = F)
+
+# Show table with SMD
+print(weightedtable, smd = T)
+```
+
+    ##                      Stratified by treatment
+    ##                       0               1               SMD   
+    ##   n                   5732.49         5744.88               
+    ##   ARF (mean (SD))        0.44 (0.50)     0.44 (0.50)   0.010
+    ##   CHF (mean (SD))        0.08 (0.27)     0.08 (0.27)   0.005
+    ##   Cirr (mean (SD))       0.04 (0.19)     0.04 (0.19)   0.001
+    ##   colcan (mean (SD))     0.00 (0.04)     0.00 (0.06)   0.042
+    ##   Coma (mean (SD))       0.08 (0.26)     0.07 (0.25)   0.023
+    ##   lungcan (mean (SD))    0.01 (0.08)     0.01 (0.09)   0.014
+    ##   MOSF (mean (SD))       0.07 (0.26)     0.07 (0.26)   0.004
+    ##   sepsis (mean (SD))     0.21 (0.41)     0.22 (0.41)   0.002
+    ##   age (mean (SD))       61.36 (17.56)   61.43 (15.33)  0.004
+    ##   female (mean (SD))     0.45 (0.50)     0.45 (0.50)   0.001
+    ##   meanbp1 (mean (SD))   78.60 (37.58)   79.26 (40.31)  0.017
+
+You can see that the methodology of weighting using the inverse
+probability of treatment gives a balanced data set. So, with that, we
+can move forward to the outcome analysis:
+
+``` r
+# Relative Risk Model
+glm.obj = glm(died ~ treatment, weights = weight, 
+              family = binomial(link = log), data = mydata)
+
+beta_iptw = coef(glm.obj)
+
+# To properly account for weighting, use asymptotic (sandwich) variance
+library(sandwich)
+SE = sqrt(diag(vcovHC(glm.obj, type = "HC0")))
+
+# Get point estimate and CI for relative risk (need to exponentiate)
+causalrr = exp(beta_iptw[2]) # relative risk for treatment effect only
+lcl = exp(beta_iptw[2] - 1.96*SE[2])
+ucl = exp(beta_iptw[2] + 1.96*SE[2])
+c(lcl, causalrr, ucl)
+```
+
+    ## treatment treatment treatment 
+    ##  1.036698  1.081764  1.128790
+
+To compare with the previous method, instead of calculating using a
+relative risk model, let’s take a look at causal risk difference. It’s
+the same methodology, we just need to change the link function.
+
+``` r
+# Risk Difference Model
+glm.obj = glm(died ~ treatment, weights = weight, 
+              family = binomial(link = "identity"), data = mydata)
+
+beta_iptw = coef(glm.obj)
+
+# To properly account for weighting, use asymptotic (sandwich) variance
+SE = sqrt(diag(vcovHC(glm.obj, type = "HC0")))
+
+# Get point estimate and CI for relative risk (need to exponentiate)
+causalrr = (beta_iptw[2]) # relative risk for treatment effect only
+lcl = (beta_iptw[2] - 1.96*SE[2])
+ucl = (beta_iptw[2] + 1.96*SE[2])
+c(lcl, causalrr, ucl)
+```
+
+    ##  treatment  treatment  treatment 
+    ## 0.02333223 0.05154951 0.07976679
+
+Note that, with this methodology, the risk difference is **0.05**,
+similar to previous methodologies (**0.045** and **0.043**,
+respectively).
+
+# Instrument Variable Analysis
+
+The dataset is from Card, D. Using Geographic Variation in College
+Proximity to Estimate the Return to Schooling:
+
+  - **Z:** indicator that the subject grew up near a 4 year college
+  - **A:** subject’s years of education
+  - **Y:** subject’s income
+  - **X:** covariates such as parents years of education, region of
+    country, age, race, IQ score, etc.
+
+What is the casual effect of schooling in income? There is a lot of
+factors that could lead to that as unmeasured confounding. So using IV
+can help assess this causal effect.
+
+## Simple Example: No Covariates
+
+``` r
+library(ivpack)
+
+# Read the dataset
+data(card.data)
+
+# IV is nearc4 (near 4 year college)
+# Outcome is lwage (log of wage)
+# Treatment is educ (number of years of education)
+
+# Exploring data
+mean(card.data$nearc4) # % of people that live near 4 year college
+```
+
+    ## [1] 0.6820598
+
+``` r
+# Let's take a look at the distribution of wage and education years.
+par(mfrow=c(1,2))
+hist(card.data$lwage)
+hist(card.data$educ)
+```
+
+![](causal_rhc_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+We can see in the charts above that we have good variability in the
+outcome and treatment variables, which is very good. For simplification
+and example, let’s binarize our treatment variable and calculate the
+effect manually:
+
+``` r
+# Let's say that our treatment is having more than 12 years of education
+educ12 = card.data$educ > 12
+
+# Estimate the proportion of 'compliers': live near and had more than 12 years of education.
+propcomp = mean(educ12[card.data$nearc4 == 1]) - mean(educ12[card.data$nearc4 == 0])
+propcomp
+```
+
+    ## [1] 0.1219293
+
+``` r
+# Intention to treat effect (itt)
+itt = mean(card.data$lwage[card.data$nearc4 == 1]) - mean(card.data$lwage[card.data$nearc4 == 0])
+itt
+```
+
+    ## [1] 0.1559075
+
+``` r
+# Complier average causal effect
+itt/propcomp
+```
+
+    ## [1] 1.278672
+
+So, in this case, the complier average causal effect is 1.279. Let’s use
+two stage least squares to get the same result:
+
+``` r
+# Stage1: Regress A on Z
+
+s1 = lm(educ12 ~  card.data$nearc4)
+
+# Get predicted value of A given Z for each subject
+predtx = predict(s1, type = "response")
+table(predtx)
+```
+
+    ## predtx
+    ## 0.422152560083588  0.54408183146614 
+    ##               957              2053
+
+``` r
+# Because Z is binary (live or not live close to 4 year college, we have only two outcomes)
+
+# Stage 2: Regress Y on predicted value of A
+lm(card.data$lwage ~  predtx)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = card.data$lwage ~ predtx)
+    ## 
+    ## Coefficients:
+    ## (Intercept)       predtx  
+    ##       5.616        1.279
+
+We’ve found the same causal effect of **1.279**.
+
+## Example with co-variates
+
+Now let’s use ivpack package to use regressions with covariates:
+
+``` r
+ivmodel = ivreg(lwage ~  educ12 + exper + reg661 + reg662 + reg663 + reg664 +
+                  reg665 + reg666 + reg667 + reg668,
+                ~ nearc4 + exper + reg661 + reg662 + reg663 + reg664 +
+                  reg665 + reg666 + reg667 + reg668,
+                x = TRUE, data = card.data)
+robust.se(ivmodel)
+```
+
+    ## [1] "Robust Standard Errors"
+
+    ## 
+    ## t test of coefficients:
+    ## 
+    ##              Estimate Std. Error t value  Pr(>|t|)    
+    ## (Intercept)  4.950242   0.363037 13.6357 < 2.2e-16 ***
+    ## educ12TRUE   1.203660   0.304549  3.9523 7.920e-05 ***
+    ## exper        0.081452   0.019441  4.1898 2.873e-05 ***
+    ## reg661       0.009228   0.072869  0.1266 0.8992345    
+    ## reg662       0.092530   0.056105  1.6492 0.0992065 .  
+    ## reg663       0.109208   0.054991  1.9859 0.0471314 *  
+    ## reg664      -0.023602   0.062978 -0.3748 0.7078594    
+    ## reg665      -0.111628   0.065945 -1.6927 0.0906084 .  
+    ## reg666      -0.135042   0.070452 -1.9168 0.0553593 .  
+    ## reg667      -0.088088   0.068514 -1.2857 0.1986517    
+    ## reg668      -0.256740   0.071859 -3.5729 0.0003587 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+An then now we have a similar causal effect with a robust standard error
+estimation.
